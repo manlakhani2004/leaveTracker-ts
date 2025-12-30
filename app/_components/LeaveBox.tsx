@@ -3,9 +3,9 @@ import { LeaveBalance} from "@/app/types/user"
 
 export default function LeaveBox({ leaveBalance }:{leaveBalance:LeaveBalance[]}) {
   const LeaveProvided = {
-    sickLeave: 20,
-    casualLeave: 20,
-    earnedLeave: 20,
+    sickLeave: 8,
+    casualLeave: 10,
+    earnedLeave: 13,
   };
 
   return (
