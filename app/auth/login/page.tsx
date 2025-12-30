@@ -96,7 +96,7 @@ export default function Page() {
                     type="email"
                     placeholder="Email"
                     name="email"
-                    className="py-3 px-4 bg-slate-700 border border-slate-600 rounded-lg w-full text-white placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-colors"
+                    className="py-3 px-4 bg-slate-700 border border-slate-600 rounded-lg w-full text-white placeholder-slate-400 focus:outline-none "
                     required
                     onChange={hanleChange}
                 />
@@ -105,7 +105,7 @@ export default function Page() {
                     type="password"
                     placeholder="Password"
                     name="password"
-                    className="py-3 px-4 bg-slate-700 border border-slate-600 rounded-lg w-full text-white placeholder-slate-400 focus:outline-none focus:border-blue-400 transition-colors"
+                    className="py-3 px-4 bg-slate-700 border border-slate-600 rounded-lg w-full text-white placeholder-slate-400 focus:outline-none "
                     required
                     onChange={hanleChange}
                 />
