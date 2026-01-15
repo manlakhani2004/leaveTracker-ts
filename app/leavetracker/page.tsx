@@ -10,25 +10,26 @@ import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
 import { calculateDays } from "../_lib/utilities"
 import { useRouter } from "next/navigation";
-import {User} from "@/app/types/user"
-import {LeaveType,LeaveRequest} from "@/app/types/leave"
+import { User } from "@/app/types/user"
+import { LeaveType, LeaveRequest } from "@/app/types/leave"
 
 
 export default function LeaveTracker() {
     const [employee, setEmployee] = useState<User | null>(null);
     const [open, setopen] = useState<boolean>(false);
-    const [fromDate, setFromDate] = useState<Date | null >(new Date());
-    const [toDate, setToDate] = useState<Date | null >(new Date());
+    const [fromDate, setFromDate] = useState<Date | null>(new Date());
+    const [toDate, setToDate] = useState<Date | null>(new Date());
     const [leaveType, setLeaveType] = useState<LeaveType>("sickLeave");
     const [reason, setReason] = useState<string>("");
     const [upcomingLeaves, setUpcomingLeaves] = useState<LeaveRequest[]>([]);
+    const [allUser, setAllUser] = useState<User[]>([]);
     const router = useRouter();
     useEffect(() => {
 
         const StoredUser = localStorage.getItem("currentuser");
         const user: User | null = StoredUser ? JSON.parse(StoredUser) : null;
         if (!user) {
-            router.push("/auth/login");
+            router.push("/auth/signin");
             return;
         }
         if (user.role != "employee") {
@@ -36,7 +37,11 @@ export default function LeaveTracker() {
             return;
         }
         setEmployee(user);
-    }, [router]);
+
+        const StoredAllUser = localStorage.getItem("users");
+        const allUserdata: User[] | [] = StoredAllUser ? JSON.parse(StoredAllUser) : [];
+        setAllUser(allUserdata);
+    }, []);
 
     if (!employee) return null;
 
@@ -47,13 +52,24 @@ export default function LeaveTracker() {
             return;
         }
         // const currentuser:User | null = JSON.parse(localStorage.getItem("currentuser"));
-        if(!fromDate || !toDate)
-        {
+        if (!fromDate || !toDate) {
             toast.error("Please select date range");
             return;
         }
+        if (!reason) {
+            toast.error("Please Enter Reason");
+            return;
+        } else if (reason.length < 3) {
+            toast.warn("Please enter valid Reason");
+            return;
+        }
+
         const days = calculateDays(fromDate, toDate);
 
+        if (!currentuser.leaveBalance || currentuser.leaveBalance.length === 0) {
+            toast.error("Leave balance not available");
+            return;
+        }
         // find leave type index
         const leaveIndex = currentuser.leaveBalance.findIndex(
             (leave) => leave.leaveType === leaveType
@@ -63,29 +79,37 @@ export default function LeaveTracker() {
             toast.error("Invalid leave type")
             return;
         }
-
-        const availableBalance = currentuser.leaveBalance[leaveIndex].balance;
+        // console.log(leaveType);
+        // console.log(currentuser.leaveBalance[leaveIndex])
+        const availableBalance = currentuser.leaveBalance[leaveIndex].total - currentuser.leaveBalance[leaveIndex].used;
         const remainingBalance = availableBalance - days;
-
+        // console.log(remainingBalance);
+        // console.log(availableBalance);
         if (remainingBalance < 0) {
 
             toast.error("Insufficient leave balance")
             return;
         }
 
-        //Update leave balance
-        currentuser.leaveBalance[leaveIndex].balance = remainingBalance;
+        currentuser.leaveBalance[leaveIndex].used += days;
         localStorage.setItem("currentuser", JSON.stringify(currentuser));
+
+       
+        const userIndex = allUser.findIndex((user) => user.email == currentuser.email)
+        const tempAllUser = allUser;
+        tempAllUser[userIndex] = currentuser;
+        localStorage.setItem("users", JSON.stringify(tempAllUser));
+        setAllUser(tempAllUser)
         setEmployee({ ...currentuser });
-        //create leave request
-        if(!fromDate || !toDate)
-        {
-             toast.error("Please select valid dates");
+
+        if (!fromDate || !toDate) {
+            toast.error("Please select valid dates");
             return
         }
-        const leaveRequest:LeaveRequest = {
+        const leaveRequest: LeaveRequest = {
             id: Date.now() + Math.floor(Math.random() * 1000),
             employeeName: currentuser.username,
+            employeeEmail: currentuser.email,
             leaveType,
             fromDate,
             toDate,
@@ -94,20 +118,25 @@ export default function LeaveTracker() {
             days
         };
 
-        // save leave requests
+
         const StoredleavesRequests = localStorage.getItem("leaveRequests");
         const leavesRequests: LeaveRequest[] = StoredleavesRequests ? JSON.parse(StoredleavesRequests) : [];
 
         leavesRequests.push(leaveRequest);
         localStorage.setItem("leaveRequests", JSON.stringify(leavesRequests));
         setUpcomingLeaves(getUpcommingLeaves());
-        toast.success("Leave Requested Successfully..")
+        toast.success("Leave Requested Successfully..");
+
+        setLeaveType("sickLeave");
+        setFromDate(new Date());
+        setToDate(new Date());
+        setReason("");
         setopen(false);
     }
 
-    const getUpcommingLeaves = ():LeaveRequest[] => {
+    const getUpcommingLeaves = (): LeaveRequest[] => {
         const storedLeavesRequests = localStorage.getItem("leaveRequests");
-        const allLeavesRequests:LeaveRequest[]  = storedLeavesRequests ? JSON.parse(storedLeavesRequests) : [];
+        const allLeavesRequests: LeaveRequest[] = storedLeavesRequests ? JSON.parse(storedLeavesRequests) : [];
         const filterByUser = allLeavesRequests.filter((leave) => leave.employeeName == employee.username)
         // console.log(filterByUser);
         const today = new Date();
@@ -128,10 +157,10 @@ export default function LeaveTracker() {
 
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 pb-4">
-                    <LeaveBox leaveBalance={employee.leaveBalance} />
+                    <LeaveBox leaveBalance={employee.leaveBalance ?? []} />
 
                     <button
-                        className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2.5 px-6 rounded-lg font-medium transition-colors shadow-lg"
+                        className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-3 px-7 rounded-lg font-semibold transition-colors shadow-lg"
                         onClick={() => setopen(true)}
                     >
                         Apply Leave
@@ -149,7 +178,7 @@ export default function LeaveTracker() {
             {open && (
                 <Modal isOpen={open} onClose={() => setopen(false)}>
                     <div className="text-white">
-                        <form onSubmit={handleSubmit} className="bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-2xl space-y-5 max-w-md border border-slate-700">
+                        <form onSubmit={handleSubmit} className="bg-slate-800 flex flex-col gap-5">
                             <h3 className="text-2xl font-bold text-blue-300 mb-4">Apply for Leave</h3>
 
 
@@ -175,24 +204,23 @@ export default function LeaveTracker() {
                                 <label className="text-sm font-medium text-slate-300">Date Range</label>
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <DatePicker
-                                        required
+
                                         selected={fromDate}
                                         minDate={new Date()}
-                                        onChange={(date:Date|null ) => setFromDate(date)}
+                                        onChange={(date: Date | null) => setFromDate(date)}
                                         className="bg-slate-700 border border-slate-600 text-white px-4 py-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholderText="From date"
                                     />
                                     <DatePicker
-                                        required
+
                                         selected={toDate}
                                         minDate={fromDate ? fromDate : undefined}
-                                        onChange={(date:Date | null) => setToDate(date as Date)}
+                                        onChange={(date: Date | null) => setToDate(date as Date)}
                                         className="bg-slate-700 border border-slate-600 text-white px-4 py-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholderText="To date"
                                     />
                                 </div>
                             </div>
-
 
                             <div className="flex flex-col gap-2">
                                 <label htmlFor="reason" className="text-sm font-medium text-slate-300">
@@ -201,7 +229,6 @@ export default function LeaveTracker() {
                                 <input
                                     type="text"
                                     name="reason"
-                                    required
                                     onChange={(e) => setReason(e.target.value)}
                                     className="bg-slate-700 border border-slate-600 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-slate-400"
                                     placeholder="Enter reason for leave"
@@ -220,5 +247,6 @@ export default function LeaveTracker() {
                 </Modal>
             )}
         </div>
+
     )
 }

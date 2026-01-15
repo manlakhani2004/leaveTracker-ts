@@ -1,12 +1,17 @@
 export interface User {
+    id?:string,
     username: string,
     email: string,
     password: string,
     role: "admin" | "employee",
-    leaveBalance: LeaveBalance[],
-    confirmPassword:string
+    leaveBalance?: LeaveBalance[],
+    confirmPassword?:string
 }
 export interface LeaveBalance {
-    leaveType: "sickLeave" | "casualLeave" | "earnedLeave";
-    balance: number
+    name: string,
+    description: string,
+    leaveType: string;
+    total: number,
+    used: number
 }
+

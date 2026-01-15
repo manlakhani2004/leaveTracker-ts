@@ -1,9 +1,10 @@
 
-export type LeaveType = "sickLeave" | "casualLeave" | "earnedLeave";
+export type LeaveType = string;
 
 export interface LeaveRequest{
       id: number,
       employeeName: string,
+      employeeEmail:string,
       leaveType: LeaveType,
       fromDate: Date,
       toDate: Date,

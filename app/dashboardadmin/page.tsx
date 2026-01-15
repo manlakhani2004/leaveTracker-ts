@@ -11,7 +11,7 @@ export default function page() {
       const storedUser = localStorage.getItem("currentuser");
       const user: User | null = storedUser ? JSON.parse(storedUser) : null
       if (!user) {
-         router.push("/auth/login");
+         router.push("/auth/signin");
          return;
       }
       if (user.role != "admin") {
@@ -20,8 +20,7 @@ export default function page() {
    }, [router])
    return (<div className=" w-full ">
       <div>
-         <h2 className=" font-semibold  text-4xl ">All Leave Requests</h2>
-
+         <h2 className=" font-semibold  text-4xl ">Leave Requests Management</h2>
       </div>
       <LeaveList />
    </div>)

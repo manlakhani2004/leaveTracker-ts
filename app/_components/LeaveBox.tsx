@@ -1,18 +1,12 @@
 import { FcLeave } from "react-icons/fc";
 import { LeaveBalance} from "@/app/types/user"
+import { TbSunset2 } from "react-icons/tb";
 
 export default function LeaveBox({ leaveBalance }:{leaveBalance:LeaveBalance[]}) {
-  const LeaveProvided = {
-    sickLeave: 8,
-    casualLeave: 10,
-    earnedLeave: 13,
-  };
-
   return (
     <div className="flex flex-wrap gap-4 sm:gap-6">
       {leaveBalance.map((leave) => {
-        const booked = LeaveProvided[leave.leaveType] - leave.balance;
-
+        
         return (
           <div
             key={leave.leaveType}
@@ -21,14 +15,14 @@ export default function LeaveBox({ leaveBalance }:{leaveBalance:LeaveBalance[]})
             <p className="text-blue-300 font-semibold text-lg capitalize">
               {leave.leaveType.replace(/([A-Z])/g, ' $1').trim()}
             </p>
-            <p className="text-4xl">
-              <FcLeave />
+            <p className=" text-3xl rounded-xl text-rose-300 p-2 bg-rose-500/10 border border-rose-400/30 backdrop-blur-sm">
+             <TbSunset2 />
             </p>
             <p className="text-white font-medium">
-              {leave.balance} days available
+              {leave.total} days available
             </p>
             <p className="text-slate-400 text-sm">
-              {booked} days taken
+              {leave.used} days taken
             </p>
           </div>
         );
