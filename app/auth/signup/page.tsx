@@ -175,7 +175,7 @@ export default function Page() {
               Create Account
             </button>
 
-            <Link href="/auth/login" className="text-slate-400 text-sm">
+            <Link href="/auth/signin" className="text-slate-400 text-sm">
               Already have an account? 
               <span className="text-blue-400"> Login</span>
             </Link>
