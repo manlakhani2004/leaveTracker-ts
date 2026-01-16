@@ -79,7 +79,7 @@ export default function Page() {
     localStorage.setItem("users", JSON.stringify(users));
 
     toast.success("Admin Created Successfully...");
-    redirect("/auth/login");
+    redirect("/auth/signin");
   }
 
   return (
